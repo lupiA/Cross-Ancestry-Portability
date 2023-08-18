@@ -7,7 +7,7 @@ We also provide a function, getSegments.R (LINK HERE), to group SNPs into local 
 \
 \
 Finally, we have provided an interactive tool, an R Shiny App (LINK HERE), in which users can input a single SNP (base pair [BP] position), range of SNPs (BP positions), or a comma-separated list of SNPs, and the App will output portability and marker information. Users are able to download the main output from the App to a .csv file.
-\
+
 \
 ## Portability Pipeline
 
