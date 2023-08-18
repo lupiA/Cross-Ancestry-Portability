@@ -7,9 +7,10 @@ We also provide a function, getSegments.R (LINK HERE), to group SNPs into local 
 \
 \
 Finally, we have provided an interactive tool, an R Shiny App (LINK HERE), in which users can input a single SNP (base pair [BP] position), range of SNPs (BP positions), or a comma-separated list of SNPs, and the App will output portability and marker information. Users are able to download the main output from the App to a .csv file.
-
-
-### Portability Pipeline
+\
+\
+\
+## Portability Pipeline
 
 1. MC-ANOVA
 2. Portability Map
@@ -22,6 +23,18 @@ Finally, we have provided an interactive tool, an R Shiny App (LINK HERE), in wh
 #### 1. MC-ANOVA
 After downloading the MC-ANOVA.R function (LINK HERE):
 
-genotypes
-phenotypes
+```
+set.seed(12345)
 
+# generate genotypes (100 subjects and 500 SNPs)
+n <- 100
+p <- 500
+genotype_data <- matrix(sample(0:2, n * p, replace = TRUE), ncol = p)
+
+# assign population IDs (80% to population 1, 20% to population 2)
+n_1 <- 0.8 * n
+n_2 <- 0.2 * n
+population <- sample(c(rep("Pop_1", round(n_1)), rep("Pop_2", round(n_2))))
+
+
+```
