@@ -19,7 +19,7 @@ Finally, we have provided an interactive tool, an [R Shiny App](https://github.c
 ### Example
 
 #### 1. MC-ANOVA
-After downloading the MC-ANOVA.R function (LINK HERE):
+After downloading the [MC-ANOVA.R](https://github.com/lupiA/Cross-Population-Portability/blob/main/MC-ANOVA.R) function:
 
 ```
 set.seed(12345)
