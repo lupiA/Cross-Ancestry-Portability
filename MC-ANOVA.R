@@ -1,4 +1,4 @@
-MC-ANOVA <- function(X, X2 = NULL, core, nQTL, nRep = NULL, maxRep = 300, lambda = 1e-8, sampler = rnorm, ...) {
+MC_ANOVA <- function(X, X2 = NULL, core, nQTL, nRep = NULL, maxRep = 300, lambda = 1e-8, sampler = rnorm, ...) {
     # X: genotype matrix for population 1
     # X2: genotype matrix for population 2
     # core: columns of X that represent the core for which RSq is estimated
