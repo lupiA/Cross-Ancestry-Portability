@@ -69,4 +69,6 @@ out <- MC_ANOVA(X_1, X2 = X_2, core = which(isCore), lambda = lambda, nQTL = nQT
 # Extract R-squared estimates
 R_squared_within <- out[1, 1]
 R_squared_across <- out[2, 1]
+
+# Now, running all segments with 10 SNP flanking buffer
 ```
