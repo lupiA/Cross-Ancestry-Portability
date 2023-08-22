@@ -9,14 +9,8 @@ We also provide a function, [getSegments.R](https://github.com/lupiA/Cross-Popul
 Finally, we have provided an interactive tool, an [R Shiny App](https://github.com/lupiA/Cross-Population-Portability/blob/main/R-shiny-app), in which users can input a single SNP (base pair [BP] position), range of SNPs (BP positions), or a comma-separated list of SNPs, and the App will output portability and marker information. Users are able to download the main output from the App to a .csv file.
 
 ## Portability Pipeline
-1. MC-ANOVA
-2. Portability Map
-3. GWAS
-4. Marker effects (Bayes)
-5. PGS
 
-### Example
-1. MC-ANOVA
+### Example: MC-ANOVA and portability map
 \
 After downloading the [MC_ANOVA.R](https://github.com/lupiA/Cross-Population-Portability/blob/main/MC-ANOVA.R) and [getSegments.R](https://github.com/lupiA/Cross-Population-Portability/blob/main/getSegments.R) functions and the [geno_map_example.csv](https://github.com/lupiA/Cross-Population-Portability/blob/main/geno_map_example.csv) file (requires the R package [BGData](https://github.com/QuantGen/BGData/tree/master)):
 
@@ -47,7 +41,7 @@ MAP <- genotype_map
 MAP$segments <- getSegments(MAP$base_pair_position, chr = MAP$chromosome, minBPSize = minBP, minSize = minSNPs, verbose = TRUE)
 
 # Perform MC-ANOVA
-# Running one central segment with 10 SNP flanking buffer
+# Example running one central segment with 10 SNP flanking buffer
 core <- which(MAP$segments == 5)
 flank_size <- 10
 chunk_start <- min(core) - flank_size
@@ -71,4 +65,42 @@ R_squared_within <- out[1, 1]
 R_squared_across <- out[2, 1]
 
 # Now, running all segments with 10 SNP flanking buffer
+# Creating portability map
+
+MAP$correlation_within <- NA
+MAP$correlation_within_SE <- NA
+MAP$correlation_across <- NA
+MAP$correlation_across_SE <- NA
+MAP$R_squared_within <- NA
+MAP$R_squared_across <- NA
+
+for(i in min(MAP$segments):max(MAP$segments)){
+
+  core <- which(MAP$segments == i)
+  flank_size <- 10
+  chunk_start <- max(min(core) - flank_size,1)
+  chunk_end <- min(max(core) + flank_size,nrow(MAP))
+  chunk <- chunk_start:chunk_end
+  isCore <- chunk %in% core
+  
+  X_1 <- X[rownames(X) == "Pop_1", chunk]
+  X_2 <- X[rownames(X) == "Pop_2", chunk]
+  
+  # Set parameters for MC-ANOVA
+  lambda <- 1e-8
+  nRep <- 300
+  nQTL <- 3
+  
+  # Perform MC-ANOVA analysis
+  out <- MC_ANOVA(X_1, X2 = X_2, core = which(isCore), lambda = lambda, nQTL = nQTL, nRep = nRep)
+  
+  # Extract portability estimates
+  MAP$correlation_within[chunk[isCore]] <- out[1, 1]
+  MAP$correlation_within_SE[chunk[isCore]] <- out[1, 2]
+  MAP$correlation_across[chunk[isCore]] <- out[2, 1]
+  MAP$correlation_across_SE[chunk[isCore]] <- out[2, 2]
+  MAP$R_squared_within[chunk[isCore]] <- out[1, 1]^2
+  MAP$R_squared_across[chunk[isCore]] <- out[2, 1]^2
+}
+
 ```
