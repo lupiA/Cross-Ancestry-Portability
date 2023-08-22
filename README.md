@@ -8,8 +8,6 @@ We also provide a function, [getSegments.R](https://github.com/lupiA/Cross-Popul
 \
 Finally, we have provided an interactive tool, an [R Shiny App](https://github.com/lupiA/Cross-Population-Portability/blob/main/R-shiny-app), in which users can input a single SNP (base pair [BP] position), range of SNPs (BP positions), or a comma-separated list of SNPs, and the App will output portability and marker information. Users are able to download the main output from the App to a .csv file.
 
-## Portability Pipeline
-
 ### Example: MC-ANOVA and portability map
 \
 After downloading the [MC_ANOVA.R](https://github.com/lupiA/Cross-Population-Portability/blob/main/MC-ANOVA.R) and [getSegments.R](https://github.com/lupiA/Cross-Population-Portability/blob/main/getSegments.R) functions and the [geno_map_example.csv](https://github.com/lupiA/Cross-Population-Portability/blob/main/geno_map_example.csv) file (requires the R package [BGData](https://github.com/QuantGen/BGData/tree/master)):
@@ -18,55 +16,31 @@ After downloading the [MC_ANOVA.R](https://github.com/lupiA/Cross-Population-Por
 # Load necessary packages
 library(BGData)
 
-# Set seed for reproducibility
+# Set seed
 set.seed(12345)
+
+# Genotype map
+genotype_map <- read.csv("~/geno_map_example.csv", header = TRUE)
 
 # Generate genotypes (100 subjects and 500 SNPs)
 n <- 100
 p <- 500
-genotype_map <- read.csv("~/geno_map_example.csv", header = TRUE)
 X <- matrix(sample(0:2, n * p, replace = TRUE), ncol = p)
 colnames(X) <- genotype_map$SNPs
 
 # Assign population IDs (80% to population 1, 20% to population 2)
-n_1 <- 0.8 * n
-n_2 <- 0.2 * n
-population <- sample(c(rep("Pop_1", round(n_1)), rep("Pop_2", round(n_2))))
+n_1 <- round(0.8 * n)
+n_2 <- round(0.2 * n)
+population <- rep(c("Pop_1", "Pop_2"), times = c(n_1, n_2))
 rownames(X) <- population
 
-# Initialize MAP and define 10 Kbp segments (>9 SNPs per segment)
+# Initialize MAP and define segments
 minSNPs <- 10
 minBP <- 10e3
 MAP <- genotype_map
 MAP$segments <- getSegments(MAP$base_pair_position, chr = MAP$chromosome, minBPSize = minBP, minSize = minSNPs, verbose = TRUE)
 
-# Perform MC-ANOVA
-# Example running one central segment with 10 SNP flanking buffer
-core <- which(MAP$segments == 5)
-flank_size <- 10
-chunk_start <- min(core) - flank_size
-chunk_end <- max(core) + flank_size
-chunk <- chunk_start:chunk_end
-isCore <- chunk %in% core
-
-X_1 <- X[rownames(X) == "Pop_1", chunk]
-X_2 <- X[rownames(X) == "Pop_2", chunk]
-
-# Set parameters for MC-ANOVA
-lambda <- 1e-8
-nRep <- 300
-nQTL <- 3
-
-# Perform MC-ANOVA analysis
-out <- MC_ANOVA(X_1, X2 = X_2, core = which(isCore), lambda = lambda, nQTL = nQTL, nRep = nRep)
-
-# Extract R-squared estimates
-R_squared_within <- out[1, 1]
-R_squared_across <- out[2, 1]
-
-# Now, running all segments with 10 SNP flanking buffer
-# Creating portability map
-
+# Initialize portability estimates
 MAP$correlation_within <- NA
 MAP$correlation_within_SE <- NA
 MAP$correlation_across <- NA
@@ -74,24 +48,24 @@ MAP$correlation_across_SE <- NA
 MAP$R_squared_within <- NA
 MAP$R_squared_across <- NA
 
-for(i in min(MAP$segments):max(MAP$segments)){
+# Set parameters for MC-ANOVA
+lambda <- 1e-8
+nRep <- 300
+nQTL <- 3
 
+# Loop over segments and run MC-ANOVA
+for (i in min(MAP$segments):max(MAP$segments)) {
   core <- which(MAP$segments == i)
   flank_size <- 10
-  chunk_start <- max(min(core) - flank_size,1)
-  chunk_end <- min(max(core) + flank_size,nrow(MAP))
+  chunk_start <- max(min(core) - flank_size, 1)
+  chunk_end <- min(max(core) + flank_size, nrow(MAP))
   chunk <- chunk_start:chunk_end
   isCore <- chunk %in% core
   
   X_1 <- X[rownames(X) == "Pop_1", chunk]
   X_2 <- X[rownames(X) == "Pop_2", chunk]
   
-  # Set parameters for MC-ANOVA
-  lambda <- 1e-8
-  nRep <- 300
-  nQTL <- 3
-  
-  # Perform MC-ANOVA analysis
+  # Run MC-ANOVA
   out <- MC_ANOVA(X_1, X2 = X_2, core = which(isCore), lambda = lambda, nQTL = nQTL, nRep = nRep)
   
   # Extract portability estimates
@@ -102,5 +76,4 @@ for(i in min(MAP$segments):max(MAP$segments)){
   MAP$R_squared_within[chunk[isCore]] <- out[1, 1]^2
   MAP$R_squared_across[chunk[isCore]] <- out[2, 1]^2
 }
-
 ```
