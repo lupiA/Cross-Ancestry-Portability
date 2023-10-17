@@ -3,7 +3,7 @@ library(shiny)
 library(data.table)
 library(ggplot2)
 
-# UI
+# Define the UI
 ui <- fluidPage(
   titlePanel("SNP Portability App"),
   sidebarLayout(
@@ -69,7 +69,7 @@ ui <- fluidPage(
   )
 )
 
-# Server
+# Define the server
 server <- function(input, output, session) {
   dat <- reactive({
     if (input$dataset == "Calls SNPs") {
