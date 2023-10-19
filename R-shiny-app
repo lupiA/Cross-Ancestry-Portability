@@ -1,56 +1,60 @@
-# load dependencies
 library(shiny)
 library(data.table)
 library(ggplot2)
+
 
 # Define the UI
 ui <- fluidPage(
   titlePanel("SNP Portability App"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("dataset", "Select Genotype Array:", choices = c("Calls SNPs")),
+      selectInput("dataset", "Select Genotype Array:",
+                  # choices = c("Calls SNPs", "Imputed SNPs")
+                  choices = c("Calls SNPs")
+                  ),
+      # h6("*imputed selection will take longer to load and run."),
       br(),
       uiOutput("population_dropdown"),
       br(),
       radioButtons("input_range", "Marker Input:",
                    choices = c("Single Marker", "Range of Markers (within chromosome)", "Comma-separated List of SNP RS IDs","Single Gene")
-      ),
+                   ),
       br(),
       conditionalPanel(
         condition = "input.input_range == 'Single Marker' || input.input_range == 'Range of Markers (within chromosome)'",
         radioButtons("input_type", "Input Type:",
-                     choices = c("SNP RS ID", "Base Pair Position & Chromosome")
-        )
-      ),
+                   choices = c("SNP RS ID", "Base Pair Position & Chromosome")
+                   )
+        ),
       conditionalPanel(
         condition = "input.input_type == 'SNP RS ID' && input.input_range == 'Single Marker'",
         textInput("rs_id", "Enter SNP ID (e.g., rs4422948):")
-      ),
+        ),
       conditionalPanel(
         condition = "input.input_type == 'Base Pair Position & Chromosome' && input.input_range == 'Single Marker'",
-        textInput("chromosome_input", "Enter Chromosome:"),
-        textInput("bp_position", "Enter Base Pair Position:")
-      ),
+        numericInput("chromosome_input", "Enter Chromosome:", value = 1),
+        numericInput("bp_position", "Enter Base Pair Position:", value = 1)
+        ),
       conditionalPanel(
         condition = "input.input_type == 'SNP RS ID' && input.input_range == 'Range of Markers (within chromosome)'",
         textInput("start_snp_id", "Enter Start SNP ID:"),
         textInput("end_snp_id", "Enter End SNP ID:")
-      ),
+        ),
       conditionalPanel(
         condition = "input.input_type == 'Base Pair Position & Chromosome' && input.input_range == 'Range of Markers (within chromosome)'",
-        textInput("chromosome_input", "Enter Chromosome:"),
-        textInput("start_bp_position", "Enter Start Base Pair Position:"),
-        textInput("end_bp_position", "Enter End Base Pair Position:")
-      ),
+        numericInput("chromosome_input", "Enter Chromosome:", value = 1),
+        numericInput("start_bp_position", "Enter Start Base Pair Position:", value = 1),
+        numericInput("end_bp_position", "Enter End Base Pair Position:", value = 1)
+        ),
       conditionalPanel(
         condition = "input.input_range == 'Comma-separated List of SNP RS IDs'",
         textInput("snp_list", "Enter SNP List (e.g., rs4422948,rs6686302):")
-      ),
+        ),
       conditionalPanel(
         condition = "input.input_range == 'Single Gene'",
         textInput("gene_name", "Enter Gene Name (e.g., ABCG2):")
       )
-    ),
+      ),
     mainPanel(
       fluidRow(width = 6,
                verbatimTextOutput("error_message")),
@@ -97,69 +101,66 @@ server <- function(input, output, session) {
       "SA"
     }
   })
-    
-  observe({
-    input_type <- input$input_type
-    if (input_type == "SNP RS ID") {
-      label <- "Enter SNP Name:"
-    } else if (input_type == "Base Pair Position & Chromosome") {
-      label <- "Enter Base Pair Position:"
-    }
-    output$input_label <- renderText({ label })
-  })
   
   filtered_snp_data <- reactive({
     snps <- dat()
     colnames(snps)[3] <- "Relative Accuracy (RA)"
-    
     snp_data <- NULL
     
     if (input$input_range == "Single Marker") {
+      
       if (input$input_type == "SNP RS ID") {
         snp_data <- snps[which(snps$SNP == input$rs_id & snps$Cohort == input$population),
                          c("SNP","Relative Accuracy (RA)", "Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
-      } else if (input$input_type == "Base Pair Position & Chromosome") {
+      } 
+      
+      else if (input$input_type == "Base Pair Position & Chromosome") {
         snps_chr <- snps[which(snps$Chromosome == input$chromosome_input),]
         snp_data <- snps_chr[which(snps_chr$`BP position` == input$bp_position & snps_chr$Cohort == input$population),
                          c("SNP","Relative Accuracy (RA)", "Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
       }
+      
     }  else if (input$input_range == "Range of Markers (within chromosome)") {
-      snps <- snps[which(snps$Cohort == input$population), ]
+      
       if (input$input_type == "SNP RS ID") {
-        start_snp_idx <- which(snps$SNP == input$start_snp_id)
-        end_snp_idx <- which(snps$SNP == input$end_snp_id)
-        if (length(start_snp_idx) > 0 && length(end_snp_idx) > 0 &&
-          snps$Chromosome[start_snp_idx] == snps$Chromosome[end_snp_idx]) {
-          snp_data <- snps[start_snp_idx:end_snp_idx,
-                           c("SNP","Relative Accuracy (RA)","Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
+        snps <- snps[which(snps$Cohort == input$population), ]
+        start_snp_idx_1 <- which(snps$SNP == input$start_snp_id)
+        end_snp_idx_1 <- which(snps$SNP == input$end_snp_id)
+        
+        if (length(start_snp_idx_1) > 0 && length(end_snp_idx_1) > 0 &&
+          snps$Chromosome[start_snp_idx_1] == snps$Chromosome[end_snp_idx_1]) {
+          snp_data <- snps[start_snp_idx_1:end_snp_idx_1,
+                          c("SNP","Relative Accuracy (RA)","Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
         }
+        
       }  else if (input$input_type == "Base Pair Position & Chromosome") {
-        snps <- snps[which(snps$Chromosome == input$chromosome_input),]
-        if (!is.null(input$start_bp_position) && !is.null(input$end_bp_position)) {
-          start_snp_idx <- min(which(as.numeric(snps$`BP position`) >= as.numeric(input$start_bp_position)))
-          end_snp_idx <- max(which(as.numeric(snps$`BP position`) <= as.numeric(input$end_bp_position)))
-        }
-        if (length(start_snp_idx) > 0 && length(end_snp_idx) > 0 && end_snp_idx > start_snp_idx && start_snp_idx > 0 &&
-          snps$Chromosome[start_snp_idx] == snps$Chromosome[end_snp_idx]) {
-          snp_data <- snps[start_snp_idx:end_snp_idx,
-                           c("SNP","Relative Accuracy (RA)","Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
+        snps <- snps[which(snps$Cohort == input$population), ]
+        snps <- snps[which(snps$Chromosome == input$chromosome_input), ]
+      
+        if(length(input$start_bp_position:input$end_bp_position) > 0 && input$start_bp_position < input$end_bp_position && input$start_bp_position > 0 && nrow(snps)>0){
+          snp_data <- snps[which(snps$`BP position` %in% input$start_bp_position:input$end_bp_position),
+                         c("SNP","Relative Accuracy (RA)", "Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
         }
       }
     }  else if (input$input_range == "Comma-separated List of SNP RS IDs") {
       snps <- snps[which(snps$Cohort == input$population), ]
       snps_in_list <- unlist(strsplit(as.character(input$snp_list), split = ","))
+      
       if (length(snps_in_list) > 0) {
         snp_data <- snps[which(snps$SNP %in% snps_in_list),
                          c("SNP","Relative Accuracy (RA)", "Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
       }
+      
     }  else if (input$input_range == "Single Gene") {
       snps <- snps[which(snps$Cohort == input$population), ]
       snps_in_list <- snps$SNP[which(snps$Gene == input$gene_name)]
+      
       if (length(snps_in_list) > 0) {
         snp_data <- snps[which(snps$SNP %in% snps_in_list),
                          c("SNP","Relative Accuracy (RA)", "Corr. EU=>AF", "Corr. EU=>EU", "Chromosome", "BP position", "Allele", "Corr. EU=>AF S.E.", "Corr. EU=>EU S.E.","Gene")]
       }
     }
+    
     if (is.null(snp_data) || nrow(snp_data) == 0) {
       snp_data <- NULL
     }
@@ -175,6 +176,7 @@ server <- function(input, output, session) {
     if (!is.null(hist_data) && length(which(is.na(hist_data$RA))) > 0) {
       hist_data <- hist_data[-which(is.na(hist_data$RA)),]
     }
+    print(str(hist_data))
     hist_data
   })
   
@@ -211,17 +213,22 @@ server <- function(input, output, session) {
     if (input$input_range == "Single Marker" && !is.null(input$rs_id) && !is.null(input$population) && !is.null(filtered_hist_data())) {
       ra_values <- as.numeric(filtered_hist_data()$RA)
       snp_ra <- as.numeric(filtered_snp_data()$`Relative Accuracy (RA)`)
+      
       snp_percentile <- ecdf(ra_values)(snp_ra) * 100
+      
       hist(ra_values, main = "Relative Accuracy Histogram (input in red)\n\ ", xlab = "RA Value", ylab = "Frequency", col = "lightblue1", breaks = 75)
       abline(v = snp_ra, col = "red3", lwd = 3)
+      
       mtext(paste("SNP RA Percentile: ", round(snp_percentile, 2), "%\n\ ",sep=""), side = 3, col = "black")
     } else if (input$input_range == "Range of Markers (within chromosome)" || input$input_range == "Comma-separated List of SNP RS IDs" || 
                input$input_range == "Single Gene" && !is.null(input$rs_id) && !is.null(input$population) && !is.null(filtered_hist_data())) {
       ra_values <- as.numeric(filtered_hist_data()$RA)
       snp_ra <- as.numeric(filtered_snp_data()$`Relative Accuracy (RA)`)
+      
       snp_percentile <- ecdf(ra_values)(snp_ra) * 100
+      
       hist(ra_values, main = "Relative Accuracy Histogram (inputs in red)\n\ ", xlab = "RA Value", ylab = "Frequency", col = "lightblue1", breaks = 75)
-      if (length(snp_ra) > 10) {
+      if (length(table(snp_ra)) > 10) {
         if(input$dataset=="Calls SNPs"){
           points(x = snp_ra, y = rep(12000, length(snp_ra)), col = "red3", lwd = .6, pch = 4)
         } else if(input$dataset=="Imputed SNPs"){
@@ -245,7 +252,7 @@ server <- function(input, output, session) {
         write.csv(filtered_table, file, row.names = FALSE)
       }
     }
-  })
+  )
   
   output$error_message <- renderText({
     if (is.null(filtered_snp_data())) {
@@ -255,5 +262,7 @@ server <- function(input, output, session) {
     }
   })
 }
-
+  
+# Run
 shinyApp(ui = ui, server = server)
+
