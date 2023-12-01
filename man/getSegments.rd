@@ -18,3 +18,6 @@
     \item{verbose}{
     }
 }
+\value{
+    A numeric vector of segment labels corresponding to each marker.
+}
