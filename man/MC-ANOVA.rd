@@ -1,12 +1,10 @@
-\name{FWD}
-\alias{FWD}
+\name{MC-ANOVA}
+\alias{MC-ANOVA}
 \title{Performs MC-ANOVA}
 \description{
     This function predicts genetic values drawn from the core using SNPs not in the core and those in the core that are not randomly chosen to be QTL.
 }
 \usage{
-FWD(y, X, df = 20, tol = 1e-7, maxIter = 1000, centerImpute = TRUE,
-    verbose = TRUE)
   MC_ANOVA(X, X2 = NULL, core, nQTL, nRep = NULL, maxRep = 300, lambda = 1e-8, sampler = rnorm, ...)
 }
 \arguments{
