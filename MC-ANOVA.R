@@ -1,6 +1,6 @@
 MC_ANOVA <- function(X, X2 = NULL, core, nQTL, nRep = NULL, maxRep = 300, lambda = 1e-8, sampler = rnorm, ...) {
-    # X: genotype matrix for population 1
-    # X2: genotype matrix for population 2
+    # X: genotype matrix for group 1
+    # X2: genotype matrix for group 2
     # core: columns of X that represent the core for which RSq is estimated
     # nQTL: number of causal loci for the MC simulation
     # nRep: number of monte carlo replicates, if null, it is internally determined
@@ -79,9 +79,9 @@ MC_ANOVA <- function(X, X2 = NULL, core, nQTL, nRep = NULL, maxRep = 300, lambda
     ANS[, 2] <- sqrt(apply(FUN = var, X = COR, MARGIN = 2) / nrow(COR))
     colnames(ANS) <- c('Cor', 'MC Error')
     if (pop2) {
-        rownames(ANS) <- c('Population 1', 'Population 2')
+        rownames(ANS) <- c('Group 1', 'Group 2')
     } else {
-        rownames(ANS) <- c('Population 1')
+        rownames(ANS) <- c('Group 1')
     }
     return(ANS)
 }
