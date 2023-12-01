@@ -1,6 +1,6 @@
 \name{getSegments}
 \alias{getSegments}
-\title{Computes small chromosome segments}
+\title{Computes small chromosome segments; calls getSegmentsChr.R}
 \usage{
   getSegments(bp, chr, minBPSize = 10e3, minSize = 10, firstSegment = 1, verbose = FALSE)
 }
