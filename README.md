@@ -2,8 +2,7 @@
 
 Below is a URL to run the MC-ANOVA portability app without requiring R or package installation. Note that this form, while equivalent, runs slower than the R package version (details of which can be found in the [MCANOVA repository](https://github.com/lupiA/MCANOVA)):
 
-https://lupia.github.io/Cross-Ancestry-Portability/
-
+Shiny app: https://lupia.github.io/Cross-Ancestry-Portability/
 
 # Main R Package
 
