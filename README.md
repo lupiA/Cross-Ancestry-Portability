@@ -28,5 +28,3 @@ Please see the [MCANOVA repository](https://github.com/lupiA/MCANOVA) for the mo
 ##
 ##
 # Cross-Ancestry-Portability
-
-
