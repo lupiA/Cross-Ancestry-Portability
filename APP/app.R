@@ -513,7 +513,7 @@ server <- function(input, output, session) {
       paste("table_", Sys.Date(), ".csv", sep = "")
     },
     content = function(file) {
-      if (!is.null(input$rs_id) && !is.null(input$ancestry) && !is.null(filtered_snp_data())) {
+      if (!is.null(input$ancestry) && !is.null(filtered_snp_data())) {
         filtered_table <- filtered_snp_data()[, c("Target Ancestry", "SNP", "Chromosome", "BP position",  
                                                   "Relative Accuracy", 
                                                   paste0("Rsq. EU\u2192", ancestry_label()), 
