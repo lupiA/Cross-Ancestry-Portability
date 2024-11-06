@@ -108,7 +108,6 @@ ui <- fluidPage(
                   accuracy, cross-ancestry R-squared [EU to target ancestry], and within-ancestry 
                   R-squared [EU to EU]), corresponding SEs and MC error for each portability measure, 
                   and the annotated gene name if available."),
-               downloadButton("download_table", "Download Table"),
                tableOutput("table2")
       )
     )
@@ -507,32 +506,6 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-  output$download_table <- downloadHandler(
-    filename = function() {
-      paste("table_", Sys.Date(), ".csv", sep = "")
-    },
-    content = function(file) {
-      if (!is.null(input$ancestry) && !is.null(filtered_snp_data())) {
-        filtered_table <- filtered_snp_data()[, c("Target Ancestry", "SNP", "Chromosome", "BP position",  
-                                                  "Relative Accuracy", 
-                                                  paste0("Rsq. EU\u2192", ancestry_label()), 
-                                                  "Rsq. EU\u2192EU",
-                                                  "MC Error RA", 
-                                                  "S.E. RA", 
-                                                  paste0("MC Error Rsq. EU\u2192", ancestry_label()), 
-                                                  paste0("S.E. Rsq. EU\u2192", ancestry_label()), 
-                                                  "MC Error Rsq. EU\u2192EU",
-                                                  "S.E. Rsq. EU\u2192EU",
-                                                  "Allele", "Gene")]
-        data.frame(filtered_table, check.names = FALSE)
-        colnames(filtered_table)[c(1,4,5)] <- c("Ancestry", "BP_position", "RA")
-        colnames(filtered_table)[6:7] <- c("Rsq.across", "Rsq.within")
-        colnames(filtered_table)[8:13] <- c("MC_error_RA", "SE_RA","MC_error_Rsq.across","SE_Rsq.across","MC_error_Rsq.within","SE_Rsq.within")
-        write.csv(filtered_table, file, row.names = FALSE)
-      }
-    }
-  )
   
   output$error_message <- renderText({
     filtered_data <- filtered_snp_data()
